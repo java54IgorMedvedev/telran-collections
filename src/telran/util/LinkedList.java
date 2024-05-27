@@ -1,211 +1,219 @@
 package telran.util;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Objects;
 
 public class LinkedList<T> implements List<T> {
-    Node<T> head;
-    Node<T> tail;
-    int size;
+	Node<T> head;
+	Node<T> tail;
+	int size;
+ private static class Node<T> {
+	 T data;
+	 Node<T> prev;
+	 Node<T> next;
+	 Node(T data) {
+		 this.data = data;
+	 }
+ }
+	@Override
+	public boolean add(T obj) {
+		Node<T> node = new Node<>(obj);
+		addNode(size, node);
+		return true;
+	}
 
-    private class Node<T> {
-        T data;
-        Node<T> prev;
-        Node<T> next;
+	@Override
+	public boolean remove(T pattern) {
+		int index = indexOf(pattern);
+		boolean res = false;
+		if (index > -1) {
+			res = true;
+			remove(index);
+		}
+		return res;
+	}
 
-        Node(T data) {
-            this.data = data;
-        }
-    }
+	@Override
+	public boolean contains(T pattern) {
+		
+		return indexOf(pattern) > - 1;
+	}
 
-    @Override
-    public boolean add(T obj) {
-    	//O[1]
-        Node<T> node = new Node<>(obj);
-        addNode(size, node);
-        return true;
-    }
-    
-    @Override
-    public boolean remove(T pattern) {
-    	//O[n]
-        Node<T> current = head;
-        while (current != null) {
-            if (current.data.equals(pattern)) {
-                removeNode(current);
-                return true;
-            }
-            current = current.next;
-        }
-        return false;
-    }
+	@Override
+	public int size() {
+		
+		return size;
+	}
+	private class LinkedListIterator implements Iterator<T> {
+		Node<T> current = head;
+		@Override
+		public boolean hasNext() {
+			return current != null;
+		}
 
-    @Override
-    public boolean contains(T pattern) {
-    	//O[n]
-        return indexOf(pattern) != -1;
-    }
+		@Override
+		public T next() {
+			if(!hasNext()) {
+				throw new NoSuchElementException();
+			}
+			T res = current.data;
+			current = current.next;
+			return res;
+		}
+		
+	}
+	@Override
+	public Iterator<T> iterator() {
+		
+		return new LinkedListIterator();
+	}
 
-    @Override
-    public int size() {
-    	//O[1]
-        return size;
-    }
+	@Override
+	public T get(int index) {
+		List.checkIndex(index, size, true);
+		return getNode(index).data;
+	}
 
-    @Override
-    public Iterator<T> iterator() {
-    	//O[1]
-        return new Iterator<T>() {
-            Node<T> current = head;
+	@Override
+	public void add(int index, T obj) {
+		List.checkIndex(index, size, false);
+		Node<T> node = new Node<>(obj);
+		addNode(index,node);
 
-            @Override
-            public boolean hasNext() {
-            	//O[1]
-                return current != null;
-            }
+	}
 
-            @Override
-            public T next() {
-            	//O[1]
-                T data = current.data;
-                current = current.next;
-                return data;
-            }
-        };
-    }
+	@Override
+	public T remove(int index) {
+		List.checkIndex(index, size, true);
+		Node<T> removed = getNode(index);
+		T res = removed.data;
+		removeNode(removed);
+		return res;
+	}
 
-    @Override
-    public T get(int index) {
-    	//O[n]
-        List.checkIndex(index, size, true);
-        return getNode(index).data;
-    }
+	private void removeNode(Node<T> removed) {
+		if(head == removed) {
+			removeHead();
+		} else if (tail == removed) {
+			removeTail();
+		} else {
+			removeMiddle(removed);
+		}
+		setNulls(removed);
+		size--;
+	}
 
-    @Override
-    public void add(int index, T obj) {
-    	//O[n]
-        List.checkIndex(index, size, false);
-        Node<T> node = new Node<>(obj);
-        addNode(index, node);
-    }
+	private void setNulls(Node<T> removed) {
+		removed.next = null;
+		removed.prev = null;
+		removed.data = null;
+		
+		
+	}
 
-    @Override
-    public T remove(int index) {
-    	//O[n]
-        List.checkIndex(index, size, true);
-        Node<T> node = getNode(index);
-        removeNode(node);
-        return node.data;
-    }
+	private void removeMiddle(Node<T> removed) {
+		Node<T> prev = removed.prev;
+		Node<T> next = removed.next;
+		prev.next = next;
+		next.prev = prev;
+		
+	}
 
-    @Override
-    public int indexOf(T pattern) {
-    	//O[n]
-        Node<T> current = head;
-        int index = 0;
-        while (current != null) {
-            if (current.data.equals(pattern)) {
-                return index;
-            }
-            current = current.next;
-            index++;
-        }
-        return -1;
-    }
+	private void removeTail() {
+		tail = tail.prev;
+		tail.next = null;
+		
+	}
 
-    @Override
-    public int lastIndexOf(T pattern) {
-        // O(n)
-        int index = -1;
-        Node<T> current = tail;
-        while (current != null && index == -1) {
-            if (current.data.equals(pattern)) {
-                index = size - 1;
-            }
-            current = current.prev;
-            size--;
-        }
-        return index;
-    }
+	private void removeHead() {
+		if(head == tail) {
+			head = tail = null;
+		} else {
+			head = head.next;
+			head.prev = null;
+		}
+		
+	}
 
-    private Node<T> getNode(int index) {
-    	//O[n]
-        return index < size / 2 ? getNodeFromHead(index) : getNodeFromTail(index);
-    }
+	@Override
+	public int indexOf(T pattern) {
+		Node<T> current = head;
+		int index = 0;
+		while(index < size && !Objects.equals(current.data, pattern)) {
+			index++;
+			current = current.next;
+		}
+		return index < size ? index : -1;
+	}
 
-    private LinkedList<T>.Node<T> getNodeFromHead(int index) {
-    	//O[n]
-        Node<T> current = head;
-        for (int i = 0; i < index; i++) {
-            current = current.next;
-        }
-        return current;
-    }
+	@Override
+	public int lastIndexOf(T pattern) {
+		Node<T> current = tail;
+		int index = size - 1;
+		while(index >= 0 && !Objects.equals(current.data, pattern)) {
+			index--;
+			current = current.prev;
+		}
+		return index;
+	}
+	private Node<T> getNode(int index) {
+		return index < size / 2 ? getNodeFromHead(index) : getNodeFromTail(index);
+	}
 
-    private LinkedList<T>.Node<T> getNodeFromTail(int index) {
-    	//O[n]
-        Node<T> current = tail;
-        for (int i = size - 1; i > index; i--) {
-            current = current.prev;
-        }
-        return current;
-    }
+	private Node<T> getNodeFromTail(int index) {
+		Node<T> current = tail;
+		for(int i = size - 1; i > index; i--) {
+			current = current.prev;
+		}
+		return current;
+	}
 
-    private void addNode(int index, Node<T> node) {
-    	//O[n]
-        if (index == 0) {
-            addHead(node);
-        } else if (index == size) {
-            addTail(node);
-        } else {
-            addMiddle(node, index);
-        }
-        size++;
-    }
+	private Node<T> getNodeFromHead(int index) {
+		Node<T> current = head;
+		for(int i = 0; i < index; i++) {
+			current = current.next;
+		}
+		return current;
+	}
+	private void addNode(int index, Node<T> node) {
+		if(index == 0) {
+			addHead(node);
+		} else if(index == size) {
+			addTail(node);
+		} else {
+			addMiddle(node, index);
+		}
+		size++;
+	}
 
-    private void addMiddle(Node<T> node, int index) {
-    	//O[n]
-        Node<T> nodeNext = getNode(index);
-        Node<T> nodePrev = nodeNext.prev;
-        nodeNext.prev = node;
-        nodePrev.next = node;
-        node.prev = nodePrev;
-        node.next = nodeNext;
-    }
+	private void addMiddle(Node<T> node, int index) {
+		Node<T> nodeNext = getNode(index);
+		Node<T> nodePrev = nodeNext.prev;
+		nodeNext.prev = node;
+		nodePrev.next = node;
+		node.prev = nodePrev;
+		node.next = nodeNext;
+		
+		
+	}
 
-    private void addTail(Node<T> node) {
-    	//O[1]
-        tail.next = node;
-        node.prev = tail;
-        tail = node;
-    }
+	private void addTail(Node<T> node) {
+		//head cannot be null
+		tail.next = node;
+		node.prev = tail;
+		tail = node;
+		
+	}
 
-    private void addHead(Node<T> node) {
-    	//O[1]
-        if (head == null) {
-            head = tail = node;
-        } else {
-            node.next = head;
-            head.prev = node;
-            head = node;
-        }
-    }
-
-    private void removeNode(Node<T> node) {
-    	//O[1]
-        if (node == head) {
-            head = node.next;
-            if (head != null) {
-                head.prev = null;
-            } else {
-                tail = null;
-            }
-        } else if (node == tail) {
-            tail = node.prev;
-            tail.next = null;
-        } else {
-            node.prev.next = node.next;
-            node.next.prev = node.prev;
-        }
-        size--;
-    }
+	private void addHead(Node<T> node) {
+		if(head == null) {
+			head = tail = node;
+		} else {
+			node.next = head;
+			head.prev = node;
+			head = node;
+		}
+		
+	}
 }
