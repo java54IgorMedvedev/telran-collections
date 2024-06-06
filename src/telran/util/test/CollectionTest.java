@@ -85,6 +85,9 @@ public abstract class CollectionTest {
 			actual[index++] = num;
 		}
 		assertEquals(N_ELEMENTS, index);
+		for(int i = 0; i < N_RUNS; i++) {
+			collection.contains(random.nextInt());
+		}
 		
 	}
 }
