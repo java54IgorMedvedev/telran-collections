@@ -14,7 +14,7 @@ public class HashSet<T> extends AbstractCollection<T> implements Set<T> {
 
 	private class HashSetIterator implements Iterator<T> {
 		Iterator<T> iterator;
-
+		Iterator<T> prevIterator;
 		int iteratorIndex;
 
 		HashSetIterator() {
@@ -39,6 +39,7 @@ public class HashSet<T> extends AbstractCollection<T> implements Set<T> {
 			if (!hasNext()) {
 				throw new NoSuchElementException();
 			}
+			prevIterator = iterator;
 			T res = iterator.next();
 			setIteratorIndex();
 			return res;
@@ -56,19 +57,12 @@ public class HashSet<T> extends AbstractCollection<T> implements Set<T> {
 		}
 		@Override
 		public void remove() {
-		    if (iterator == null) {
-		        throw new IllegalStateException("Iterator is not initialized");
-		    }
-		    iterator.remove();
-		    size--;
-
-		    int index = iteratorIndex - 1;
-		    if (index >= 0 && index < hashTable.length) {
-		        List<T> list = hashTable[index];
-		        if (list != null) {
-		            list.remove(iterator.next());
-		        }
-		    }
+			if(prevIterator == null) {
+				throw new IllegalStateException();
+			}
+			prevIterator.remove();
+			size--;
+			prevIterator = null;
 		}
 
 	}

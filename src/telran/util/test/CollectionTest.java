@@ -125,6 +125,7 @@ public abstract class CollectionTest {
 		assertTrue(collection.removeIf(n -> n % 2 == 0));
 		assertTrue(collection.stream().allMatch(n -> n % 2 != 0));
 		assertFalse(collection.removeIf(n -> n % 2 == 0));
+		assertEquals(2, collection.size());
 	}
 	@Test
 	void clearTest() {
