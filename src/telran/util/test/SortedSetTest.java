@@ -48,5 +48,5 @@ abstract class SortedSetTest extends SetTest {
 		assertNull(set.ceiling(150));
 		assertEquals(-20, set.ceiling(-25));
 	}
-
+	
 }
