@@ -402,6 +402,4 @@ private static final int SEPARATOR_LENGTH = 20;
 		}
 		return res;
 	}
-	
-
 }
