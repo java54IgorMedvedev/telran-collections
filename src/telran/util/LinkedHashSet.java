@@ -1,14 +1,34 @@
 package telran.util;
 
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 import telran.util.LinkedList.Node;
 
 public class LinkedHashSet<T> extends AbstractCollection<T> implements Set<T> {
 	HashMap<T, Node<T>> map = new HashMap<>();
 	LinkedList<T> list = new LinkedList<>();
-	
+	private class LinkedHashSetIterator implements Iterator<T> {
+		Iterator<T> it = list.iterator();
+		T iterated;
+		@Override
+		public boolean hasNext() {
+			
+			return it.hasNext();
+		}
+
+		@Override
+		public T next() {
+			iterated = it.next();
+			return iterated;
+		}
+		@Override
+		public void remove() {
+			it.remove();
+			map.remove(iterated);
+			size--;
+		}
+		
+	}
 	@Override
 	public T get(T pattern) {
 		Node<T> node = map.get(pattern);
@@ -18,12 +38,14 @@ public class LinkedHashSet<T> extends AbstractCollection<T> implements Set<T> {
 
 	@Override
 	public boolean add(T obj) {
-	    boolean added = !contains(obj);
-	    if (added) {
-	        map.put(obj, new LinkedList.Node<>(obj));
-	        list.addNode(size++, map.get(obj));
-	    }
-	    return added;
+		boolean res = false;
+		if(!contains(obj)) {
+			res = true;
+			Node<T> node = new Node<T>(obj);
+			map.put(obj, node);
+			list.addNode(size++, node);
+		}
+		return res;
 	}
 
 	@Override
@@ -42,29 +64,14 @@ public class LinkedHashSet<T> extends AbstractCollection<T> implements Set<T> {
 
 	@Override
 	public boolean contains(T pattern) {
-	    Node<T> node = map.get(pattern);
-	    return node != null;
+		
+		return map.get(pattern) != null;
 	}
 
 	@Override
-    public Iterator<T> iterator() {
-        return new Iterator<T>() {
-            private Node<T> current = list.head;
+	public Iterator<T> iterator() {
+		
+		return new LinkedHashSetIterator();
+	}
 
-            @Override
-            public boolean hasNext() {
-                return current != null;
-            }
-
-            @Override
-            public T next() {
-                if (!hasNext()) {
-                    throw new NoSuchElementException();
-                }
-                T data = current.data;
-                current = current.next;
-                return data;
-            }
-        };
-    }
 }
